@@ -4,7 +4,7 @@ subtitle: "Analyzing the factors that have an impact on the positive solitude ex
 thanks: "Code and data are available at:https://github.com/kzhou1999/the_puzzle_of_solitude_experiences "
 author: "Qiao Zhou"
 date: "`r format(Sys.time(), '% 05 % April % 2022')`"
-abstract: "Solitude is a double-edged sword; people have quite distinct solitude experiences. This report utilizes the data from an experiment to:1)figure out which factors correlate with the positive solitude experiences and negative solitude experiences.2)discuss the potential bias in our data. According to the data and analysis, a better social quality, higher self-efficacy, and greater age will lead to better solitude experiences. In contrast, a higher level of anxiety will lead to worse solitude experiences. However, as our dataset is too small and not representative to some extent, our conclusion may get less accurate than we expect."
+abstract: "Solitude is a double-edged sword; people have quite distinct solitude experiences. This report utilizes the data from an experiment to:1)figure out which factors correlate with the positive solitude experiences and negative solitude experiences.2)discuss the potential bias in our data. According to the data and analysis, a better social quality, higher self-efficacy, and greater age will lead to better solitude experiences. In contrast, a higher level of anxiety will lead to worse solitude experiences. However, as our dataset is too small and not representative to some extent, our conclusion may get less accurate than we expect.  \\par \\textbf{Keywords:} Solitude Experience , Linear Regression, Experiment, BIC Selection" 
 output:
   bookdown::pdf_document2
 toc: FALSE
