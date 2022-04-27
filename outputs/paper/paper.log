@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.24 (TeX Live 2022) (preloaded format=pdflatex 2022.4.26)  27 APR 2022 00:42
+This is pdfTeX, Version 3.141592653-2.6-1.40.24 (TeX Live 2022) (preloaded format=pdflatex 2022.4.26)  27 APR 2022 03:20
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -585,7 +585,7 @@ Underfull \hbox (badness 10000) in paragraph at lines 156--159
 [2]
 LaTeX Font Info:    External font `lmex10' loaded for size
 (Font)              <7> on input line 164.
-<paper_files/figure-latex/dis-1.pdf, id=107, 578.16pt x 289.08pt>
+<paper_files/figure-latex/dis-1.pdf, id=119, 578.16pt x 289.08pt>
 File: paper_files/figure-latex/dis-1.pdf Graphic file (type pdf)
 <use paper_files/figure-latex/dis-1.pdf>
 Package pdftex.def Info: paper_files/figure-latex/dis-1.pdf  used on input line 201.
@@ -601,17 +601,17 @@ pdfTeX warning (ext4): destination with the same identifier (name{figure.1}) has
                                                   \__shipout_drop_firstpage_...
 l.206 
        <./paper_files/figure-latex/dis-1.pdf>]
-<paper_files/figure-latex/pos-1.pdf, id=126, 433.62pt x 144.54pt>
+<paper_files/figure-latex/pos-1.pdf, id=139, 433.62pt x 144.54pt>
 File: paper_files/figure-latex/pos-1.pdf Graphic file (type pdf)
 <use paper_files/figure-latex/pos-1.pdf>
 Package pdftex.def Info: paper_files/figure-latex/pos-1.pdf  used on input line 212.
 (pdftex.def)             Requested size: 433.63878pt x 144.54623pt.
-<paper_files/figure-latex/neg-1.pdf, id=127, 433.62pt x 144.54pt>
+<paper_files/figure-latex/neg-1.pdf, id=140, 433.62pt x 144.54pt>
 File: paper_files/figure-latex/neg-1.pdf Graphic file (type pdf)
 <use paper_files/figure-latex/neg-1.pdf>
 Package pdftex.def Info: paper_files/figure-latex/neg-1.pdf  used on input line 218.
 (pdftex.def)             Requested size: 433.63878pt x 144.54623pt.
-<paper_files/figure-latex/den-1.pdf, id=130, 578.16pt x 289.08pt>
+<paper_files/figure-latex/den-1.pdf, id=143, 578.16pt x 289.08pt>
 File: paper_files/figure-latex/den-1.pdf Graphic file (type pdf)
 <use paper_files/figure-latex/den-1.pdf>
 Package pdftex.def Info: paper_files/figure-latex/den-1.pdf  used on input line 226.
@@ -631,7 +631,7 @@ Underfull \hbox (badness 10000) in paragraph at lines 230--231
 
  []
 
-<paper_files/figure-latex/ag-1.pdf, id=155, 578.16pt x 289.08pt>
+<paper_files/figure-latex/ag-1.pdf, id=169, 578.16pt x 289.08pt>
 File: paper_files/figure-latex/ag-1.pdf Graphic file (type pdf)
 <use paper_files/figure-latex/ag-1.pdf>
 Package pdftex.def Info: paper_files/figure-latex/ag-1.pdf  used on input line 237.
@@ -646,7 +646,7 @@ Underfull \hbox (badness 10000) in paragraph at lines 241--243
 
  []
 
-<paper_files/figure-latex/box-1.pdf, id=172, 578.16pt x 289.08pt>
+<paper_files/figure-latex/box-1.pdf, id=185, 578.16pt x 289.08pt>
 File: paper_files/figure-latex/box-1.pdf Graphic file (type pdf)
 <use paper_files/figure-latex/box-1.pdf>
 Package pdftex.def Info: paper_files/figure-latex/box-1.pdf  used on input line 247.
@@ -688,31 +688,31 @@ pdfTeX warning (ext4): destination with the same identifier (name{table.4}) has 
 <argument> ...shipout:D \box_use:N \l_shipout_box 
                                                   \__shipout_drop_firstpage_...
 l.418 
-      ] [11] [12]
-Underfull \hbox (badness 1533) in paragraph at lines 438--440
+      ] [11] [12] [13]
+Underfull \hbox (badness 1533) in paragraph at lines 455--457
 [][]\T1/lmr/m/n/10 CFI, Ed-u-ca-tion inc. 2022. \T1/lmr/m/it/10 Mul-ti-ple Lin-ear Re-gres-sion\T1/lmr/m/n/10 . \T1/lmr/m/it/10 Cor-po-rate Fi-nance In-sti-tute\T1/lmr/m/n/10 . []$https :
  []
 
-[13] (./paper.aux)
+[14] (./paper.aux)
 
 LaTeX Warning: There were undefined references.
 
 Package rerunfilecheck Info: File `paper.out' has not changed.
-(rerunfilecheck)             Checksum: 238A11C3B46953BBB2C0605AD1554E7B;3207.
+(rerunfilecheck)             Checksum: E5DAED13BFA71756D05352C8ADA74017;3534.
  ) 
 Here is how much of TeX's memory you used:
- 12869 strings out of 480193
- 202540 string characters out of 5892545
- 499469 words of memory out of 5000000
- 30518 multiletter control sequences out of 15000+600000
+ 12883 strings out of 480193
+ 202718 string characters out of 5892545
+ 499599 words of memory out of 5000000
+ 30525 multiletter control sequences out of 15000+600000
  535662 words of font info for 79 fonts, out of 8000000 for 9000
  14 hyphenation exceptions out of 8191
  60i,9n,63p,1624b,417s stack positions out of 10000i,1000n,20000p,200000b,200000s
 {/Users/zqa/Library/TinyTeX/texmf-dist/fonts/enc/dvips/lm/lm-ec.enc}{/Users/zqa/Library/TinyTeX/texmf-dist/fonts/enc/dvips/lm/lm-mathit.enc}{/Users/zqa/Library/TinyTeX/texmf-dist/fonts/enc/dvips/lm/lm-rm.enc}{/Users/zqa/Library/TinyTeX/texmf-dist/fonts/enc/dvips/lm/lm-ts1.enc}</Users/zqa/Library/TinyTeX/texmf-dist/fonts/type1/public/lm/lmbx10.pfb></Users/zqa/Library/TinyTeX/texmf-dist/fonts/type1/public/lm/lmbx12.pfb></Users/zqa/Library/TinyTeX/texmf-dist/fonts/type1/public/lm/lmbx9.pfb></Users/zqa/Library/TinyTeX/texmf-dist/fonts/type1/public/lm/lmmi10.pfb></Users/zqa/Library/TinyTeX/texmf-dist/fonts/type1/public/lm/lmmi7.pfb></Users/zqa/Library/TinyTeX/texmf-dist/fonts/type1/public/lm/lmr10.pfb></Users/zqa/Library/TinyTeX/texmf-dist/fonts/type1/public/lm/lmr12.pfb></Users/zqa/Library/TinyTeX/texmf-dist/fonts/type1/public/lm/lmr17.pfb></Users/zqa/Library/TinyTeX/texmf-dist/fonts/type1/public/lm/lmr6.pfb></Users/zqa/Library/TinyTeX/texmf-dist/fonts/type1/public/lm/lmr7.pfb></Users/zqa/Library/TinyTeX/texmf-dist/fonts/type1/public/lm/lmr8.pfb></Users/zqa/Library/TinyTeX/texmf-dist/fonts/type1/public/lm/lmr9.pfb></Users/zqa/Library/TinyTeX/texmf-dist/fonts/type1/public/lm/lmri10.pfb>
-Output written on paper.pdf (13 pages, 401746 bytes).
+Output written on paper.pdf (14 pages, 405448 bytes).
 PDF statistics:
- 365 PDF objects out of 1000 (max. 8388607)
- 305 compressed objects within 4 object streams
- 84 named destinations out of 1000 (max. 500000)
- 191 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 387 PDF objects out of 1000 (max. 8388607)
+ 326 compressed objects within 4 object streams
+ 91 named destinations out of 1000 (max. 500000)
+ 215 words of extra memory for PDF output out of 10000 (max. 10000000)
 
