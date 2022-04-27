@@ -20,10 +20,10 @@ knitr::opts_chunk$set(echo = FALSE,fig.width=8,fig.height=4)
 library(readr)
 library(here)
 library(tidyverse)
-library(car)
 library(dplyr)
 library(patchwork)
 library(kableExtra)
+library(car)
 ```
 
 # Introduction
@@ -36,7 +36,7 @@ The rest of the paper is organized as follows: In the Data section (section 2), 
 
 # Data
 \
-The research uses the R language[@rstudio] as its foundation. I have used packages such as tidyverse[@tidy], here[@here], and readr[@readr] to prepare data for this project. I then used dplyr[@dplyr], KableExtra[@extra] and knitr[@knitr] to generate table ; patchwork[patch] and ggplot2[@ggplot2] to generate and organize plots.
+The research uses the R language[@rstudio] as its foundation. I have used packages such as tidyverse[@tidy], here[@here], car[@car] and readr[@readr] to prepare data and models for this project. I then used dplyr[@dplyr], KableExtra[@extra] and knitr[@knitr] to generate table ; patchwork[@patch] and ggplot2[@ggplot2] to generate and organize plots.
 \
 ```{r,warning=FALSE, message=FALSE}
 #read the raw data in
@@ -69,17 +69,19 @@ write_csv(final_data, here("inputs/data/final_data.csv"))
 ```
 
 ## Data Source and the Experiment
-The original dataset was gathered during a 2018 experiment at the University of British Columbia. One hundred community-dwelling adults aged 50–85 years (64 percent female; 56 percent East Asian, 36 percent European, 8% other/mixed heritage) and 50 students aged 18–28 years (92 percent female; 42 percent East Asian, 22 percent European, 36 percent other/mixed heritage) each completed approximately 30 daily life assessments on their current and desired social situation, thoughts, and affect over ten days for this experiment[@hopp]. A baseline session, a time-sampling phase, and an exit session were all part of this experiment. Participants completed questionnaires evaluating individual differences (e.g., trait self-reflection) and were trained to use portable electronic devices during the baseline session. Then, starting the day after the baseline session, individuals were beeped three times daily (once in the morning, once in the afternoon, and once in the evening) over a 10-day time sampling period. On each occasion, participants used a touch screen interface on an iPod or iPad mini to answer a brief questionnaire about their thoughts, feelings, and existing and ideal social situation [@hopp].\
+The original dataset was gathered during a experiment at the University of British Columbia. One hundred community-dwelling adults aged 50–85 years (64 percent female; 56 percent East Asian, 36 percent European, 8% other/mixed heritage) and 50 students aged 18–28 years (92 percent female; 42 percent East Asian, 22 percent European, 36 percent other/mixed heritage) each completed approximately 30 daily life assessments on their current and desired social situation, thoughts, and affect over ten days for this experiment[@hopp]. A baseline session, a time-sampling phase, and an exit session were all part of this experiment. Participants completed questionnaires evaluating individual differences (e.g., trait self-reflection) and were trained to use portable electronic devices during the baseline session. Then, starting the day after the baseline session, individuals were beeped three times daily (once in the morning, once in the afternoon, and once in the evening) over a 10-day time sampling period. On each occasion, participants used a touch screen interface on an iPod or iPad mini to answer a brief questionnaire about their thoughts, feelings, and existing and ideal social situation [@hopp].\
 
 ## Data Overview and Data Cleaning process
 
 There are 4571 rows and 51 variables in the original dataset. It contains all the experimental survey results from 150 observations; each participant completed the same survey around 30 times over ten days (3 to 4 times a day). As a result, each survey is recorded in one row. Thus each participant's response is stored in 30 rows. Individual differences (person-level) and temporal sampling (momentary level) variables are included in this dataset. Individual difference variables are collected before and after the trials; this variable contains participants' personal information such as age, gender, and social network size. Every participant's different variables in each row are the same.On the other hand, the time sampling variables contain the data gathered during the experiments. The sampling variables' results are unique in every single row. Every row has a different set of results for the sampling variables. Every participant's number of surveys (from 1 to 30) was recorded in a variable named Assessment Number[@hopp].\
 I did some data cleaning on the original data set because I intend to investigate the potential correlation between the selected factors (age, gender, rate of overall well-being, social network size, social relationship quality, social self-efficacy, self-reflection, solitude time, and anxiety level) and both positive and negative solitude experiences. First, I calculate the mean value of each participant's positive affect (average of the high-arousal positive affect and low-arousal positive affect) and negative affect((average of the high-arousal negative affect and low-arousal negative affect) and save them into these two variable columns for further use. Then, I filter out all rows whose assessment number does not equal 1. This method allows me to obtain individual differences and the mean value of positive and negative solitude emotion scores over ten days, with each row representing a unique participant. Then I remove all of the empty cells. Finally, I chose all of the required variables to create the final dataset I need for this study.
-The definitions of the variables in the cleaned data are shown below.\
+The definitions of the variables in the cleaned data are shown in the above table(Table \@ref(tab:tab1)).\
 
-```{r,warning=FALSE}
+```{r tab1,warning=FALSE}
+#create data frame 
 vardef=data_frame("Variables"=c("sub_health", "age", "gender", "network_size", "social quality", "self_efficacy", "self_reflection", "solitude", "anxiety", "mean_pos_affect", "mean_neg_affect"),
                   "Definition"=c("The rate of the overall wellbeing on the scale of 5", "Age at baseline session in years", "1 = female, 0 = male", "Total network size", "The social relationship quality of participants on the scale of 5","Social self-efficacy score on the scale of 5","Self-reflection score on the scale of 5","Overall time in solitude in proportion","Personal anxiety score for their social relationship on the scale of 5","The average positive solitude experience in 10 days","The average negative solitude experience in 10 days"))
+#generate table and add caption
 knitr::kable(vardef,caption="Definitions of Variables")
 ```
 
@@ -87,7 +89,7 @@ knitr::kable(vardef,caption="Definitions of Variables")
 
 ### Overall distribution of solitude experiences
 
-```{r dis,fig.cap="Distribution of solitude experiences",fig.position="H"}
+```{r dis,fig.cap="Distribution of solitude experiences"}
 #add two new columns 
 Positive_solitude <- final_data%>%mutate(value=mean_pos_affect)
 Negative_solitude <-final_data%>%mutate(value=mean_neg_affect)
@@ -105,6 +107,7 @@ Let's look at the above graph(Figure \@ref(fig:dis)). For the negative solitude 
 ### Solitude experiences and the social quality
 
 ```{r pos,fig.cap="Relationship between the social quality and the positive solitude experiences",fig.width=6,fig.height=2, message=FALSE}
+#draw the scatterplot for pos
 final_data%>%
   ggplot(aes(x=social_quality,y=mean_pos_affect,)) +labs(x="social quality",y="Positive solitude experiences")+
   geom_point()+
@@ -112,15 +115,17 @@ final_data%>%
 ```
 
 ```{r neg,fig.cap="Relationship between the social quality and the positive solitude experiences",fig.width=6,fig.height=2,message=FALSE}
+#draw the scatterplot fot neg
 final_data%>%
   ggplot(aes(x=social_quality,y=mean_neg_affect,)) +labs(x="social quality",y="Negative solitude experiences")+
   geom_point()+
   geom_smooth(method = "lm")
 ```
 
-From the above graphs, we can observe linear trends in both plots. Better social quality will lead to a higher score on the positive solitude affect(Figure \@ref(fig:pos)), which means a positive linear relationship between the positive solitude experience and the social quality. As for another graph, on the other hand, we can notice that as the social quality becomes better, the score on negative solitude experiences gets lower(Figure \@ref(fig:neg)), which means that there is a negative linear relationship between the negative solitude experiences and the social quality. These facts imply that better quality is helpful for people to get a better solitude experience.
+From the above graphs(Figure \@ref(fig:pos))(Figure \@ref(fig:neg)), we can observe linear trends in both plots. Better social quality will lead to a higher score on the positive solitude affect(Figure \@ref(fig:pos)), which means a positive linear relationship between the positive solitude experience and the social quality. As for another graph, on the other hand, we can notice that as the social quality becomes better, the score on negative solitude experiences gets lower(Figure \@ref(fig:neg)), which means that there is a negative linear relationship between the negative solitude experiences and the social quality. These facts imply that better quality is helpful for people to get a better solitude experience.
 
 ```{r den, fig.cap="Relationship between the social quality and the network size"}
+#draw the density plot
 final_data %>% ggplot(aes(x = network_size, y = social_quality)) +
   stat_density_2d(aes(fill = ..level..), geom = "polygon", colour = "white") + labs(
     x = "network size",
@@ -140,21 +145,22 @@ final_data %>% ggplot(aes(x = network_size, y = social_quality)) +
   )
 ```
 
-Due to the rapid development of technology, social media has become a considerable component of people's social life. Thus, I assume primarily that the network size will influence the social quality to a great extent. However, I am not sure whether this influence will be good or bad. Because spending too much time on the social media will be beneficial for some people since social media helps them to keep in touch with their friends more quickly, but it will also harm people's social quality since people will have less time to hang out and communicate with their friends in real life. To investigate further the relationship between the social quality and the network size, I use our trimmed dataset to plot a density graph(Figure \@ref(fig:den)). From the above plot, I observed that participants with high network size(total network size greater than 30) tend to have better social quality(with a score on social media more significant than 3). As for the people with relatively smaller network sizes, we can see that their scores on social quality range from the lowest to the highest. But we can still observe that most people with relatively smaller network sizes are still getting a pretty satisfactory score on the social quality at around 3.5. According to the above observations, we can conclude that the network size may have a little bit positive effect on social quality. Still, there is no sign that it dramatically impacts social quality.\
+Due to the rapid development of technology, social media has become a considerable component of people's social life. Thus, I assume primarily that the network size will influence the social quality to a great extent. However, I am not sure whether this influence will be good or bad. Because spending too much time on the social media will be beneficial for some people since social media helps them to keep in touch with their friends more quickly, but it will also harm people's social quality since people will have less time to hang out and communicate with their friends in real life. To investigate further the relationship between the social quality and the network size, I use our trimmed dataset to plot a density graph(Figure \@ref(fig:den)). From the above plot(Figure \@ref(fig:den)), I observed that participants with high network size(total network size greater than 30) tend to have better social quality(with a score on social media more significant than 3). As for the people with relatively smaller network sizes, we can see that their scores on social quality range from the lowest to the highest. But we can still observe that most people with relatively smaller network sizes are still getting a pretty satisfactory score on the social quality at around 3.5. According to the above observations, we can conclude that the network size may have a little bit positive effect on social quality. Still, there is no sign that it dramatically impacts social quality.\
 
 ### Solitude experiences and anxiety
 
 ```{r ag, message=FALSE,fig.cap="Relationship between the anxiety and the solitude experiences based on gender"}
+#add a new column Gender and draw the scatterplot for pos
 p1<-final_data%>%mutate(Gender=case_when(gender==1~"female", gender==0~"male"))%>%
   ggplot(aes(x=anxiety,y=mean_pos_affect,color=Gender)) +labs(x="anxiety",y="Positivee solitude experiences")+
   geom_point()+
   geom_smooth(method = "lm")
-
+#add a new column Gender and draw the scatterplot for neg
 p2<-final_data%>%mutate(Gender=case_when(gender==1~"female", gender==0~"male"))%>%
   ggplot(aes(x=anxiety,y=mean_neg_affect,color=Gender)) +labs(x="anxiety",y="Negative solitude experiences")+
   geom_point()+
   geom_smooth(method = "lm")
-
+#rearrange the plots
 p1+p2
 
 ```
@@ -165,29 +171,41 @@ The graph above(Figure \@ref(fig:ag)) shows the relationships between the anxiet
 
 ### Solitude experiences and age
 
-```{r box, fig.caption="Relationship between the age and the solitude experiences"}
+
+
+
+```{r boxp,fig.cap="Relationship between the age group and the solitude experiences"}
+#add a new column age group and draw the boxplot for pos
 p3<-final_data%>%
   mutate(Age_group=case_when(age<50~"Student",age>=49~"Older adult"))%>%
   ggplot(aes(y=mean_pos_affect, x=Age_group))+geom_boxplot(color="black",fill="light blue")+labs(x="Age group",y="Positive solitude affect")+ coord_flip()
-
+#add a new column age group and draw the boxplot for neg
 p4<-final_data%>%
   mutate(Age_group=case_when(age<50~"Student",age>=49~"Older adult"))%>%
   ggplot(aes(y=mean_neg_affect, x=Age_group))+geom_boxplot(color="black",fill="light blue")+labs(x="Age group",y="Negatice solitude affect")+ coord_flip()
-
+#rearrange the plots
 p3+p4
 
 ```
 
-In the original experiment, all participants were divided into two groups based on age. The participants are divided into one hundred community‐dwelling adults aged 50–85 years and 50 undergraduate students aged 18–28 years. I did the same grouping on age for my dataset. I plot two boxplots(Figure \@ref(fig:box)) to compare the score on positive and negative solitude experiences between different age groups. Based on my common sense, I will claim that the older group will have a better solitude experience because they are more mature than the students. They can handle the negative affect when being isolated. Now, I will look at the above graphs(Figure \@ref(fig:box)) to check whether my assumptions are correct. For the positive solitude affect(plot on the left), we notice that the older adult group has a mean score of around 60, which is much higher than the student group. As for the negative solitude affect, on the other hand, the student group has a higher score on the negative solitude affect than the older adult group. These facts match my assumption well.
+
+
+
+\
+In the original experiment, all participants were divided into two groups based on age. The participants are divided into one hundred community‐dwelling adults aged 50–85 years and 50 undergraduate students aged 18–28 years. I did the same grouping on age for my dataset. I plot two boxplots(Figure \@ref(fig:boxp)) to compare the score on positive and negative solitude experiences between different age groups. Based on my common sense, I will claim that the older group will have a better solitude experience because they are more mature than the students. They can handle the negative affect when being isolated. Now, I will look at the above graphs(Figure \@ref(fig:boxp)) to check whether my assumptions are correct. For the positive solitude affect(plot on the left), we notice that the older adult group has a mean score of around 60, which is much higher than the student group. As for the negative solitude affect, on the other hand, the student group has a higher score on the negative solitude affect than the older adult group. These facts match my assumption well.
 
 # Model
 
 ```{r ,echo=FALSE, include=FALSE}
+#fit model for pos
 pos_mod=lm(mean_pos_affect~age+gender+network_size+social_quality+self_efficacy+self_reflection+solitude+anxiety+sub_health,data=final_data)
+#fit model for neg
 neg_mod=lm(mean_neg_affect~age+gender+network_size+social_quality+self_efficacy+self_reflection+solitude+anxiety+sub_health,data=final_data)
 summary(pos_mod)
 summary(neg_mod)
+#check vif for pos_mod
 pos_vif=vif(pos_mod)
+#check vif for neg_mod
 neg_vif=vif(neg_mod)
 ```
 
@@ -252,9 +270,10 @@ Note: In our paper, the significance level I use is $alpha$=0.05
 ## Model fitting and selection
 
 I fit two models using all of the selected variables, one for the positive solitude affect and the other one for the negative solitude affect. The variables are age, gender, the rate of overall well being, social network size, social relationship quality, social self-efficacy, the self-reflection, solitude time, and anxiety level.\
-From the below table 2, we can see that all of the VIF values are relatively small. So, we decided to keep all those variables in the full models. Then, I use the backward selection to help me select the best model. Our full model for positive solitude affect contains nine variables: age, gender, the rate of overall well-being, social network size, social relationship quality, social self-efficacy, self-reflection, solitude time, and anxiety level. The backward selection model removes six variables from my full model. Thus, the backward selection model for the positive solitude experiences has only three variables; age, social quality, and self-efficacy. And those variables are concluded as having the most correlation with the positive solitude experiences. Our full model for the negative solitude affect contains nine variables as well. The backward selection model also removes six variables from my full model. Thus, the backward selection model for the negative solitude affect has three variables; age, social quality, and anxiety level. And those variables are concluded as having the most correlation with the negative solitude affect.\
+From the below table(Table \@ref(tab:vif), we can see that all of the VIF values are relatively small. So, we decided to keep all those variables in the full models. Then, I use the backward selection to help me select the best model. Our full model for positive solitude affect contains nine variables: age, gender, the rate of overall well-being, social network size, social relationship quality, social self-efficacy, self-reflection, solitude time, and anxiety level. The backward selection model removes six variables from my full model. Thus, the backward selection model for the positive solitude experiences has only three variables; age, social quality, and self-efficacy. And those variables are concluded as having the most correlation with the positive solitude experiences. Our full model for the negative solitude affect contains nine variables as well. The backward selection model also removes six variables from my full model. Thus, the backward selection model for the negative solitude affect has three variables; age, social quality, and anxiety level. And those variables are concluded as having the most correlation with the negative solitude affect.\
 
-```{r tab, }
+```{r vif}
+#create dataframe and generate table
 Variable_pos <- c("age","gender","network_size","social_quality","self_efficacy","self_reflection","solitude",
                   "anxiety","sub_health")
 Variable_neg <- c("age","gender","network_size","social_quality","self_efficacy","self_reflection","solitude",
@@ -274,20 +293,25 @@ mean negative solitude affect = $\hat{\beta}_0$+$\hat{\beta}_1$age+$\hat{\beta}_
 
 ```{r ,echo=FALSE, include=FALSE}
 m = length(final_data$mean_pos_affect)
+#bic backward selection for pos_mod
 bic_pos = step(pos_mod, direction = "backward", k = log(m))
 n = length(final_data$mean_neg_affect)
-bic_pos = step(neg_mod, direction = "backward", k = log(n))
+#bic backward seclection for neg_mod
+bic_neg = step(neg_mod, direction = "backward", k = log(n))
+#fit final model for pos
 final_pos_mod =lm(mean_pos_affect~age+social_quality+self_efficacy,data=final_data)
 summary(final_pos_mod)
+#fit final model for neg
 final_neg_mod =lm(mean_neg_affect~age+social_quality+anxiety,data=final_data)
 summary(final_neg_mod)
 ```
 
 # Results
 
-Now, we can finally analyze our linear regression models. Let us first look at the model for the positive solitude affect. The following table includes the estimated result for this model(table3).
+Now, we can finally analyze our linear regression models. Let us first look at the model for the positive solitude affect. The following table includes the estimated result for this model(Table \@ref(tab:post)).
 
-```{r}
+```{r post}
+#create dataframe and generate table
 varp=c("intercept","age","social_quality","self_efficacy")
 estp=c(0.74659,0.24844,5.96085,5.78392)
 pp=c(0.915136,1.8*10^(-8),0.000221,0.001318)
@@ -298,11 +322,12 @@ knitr::kable(mod1_table,caption="The estimations and the p values for the positi
 
 
 We first look at $\hat{\beta}_0$. This value is the intercept of our linear regression models. It means when the other variable equals 0. Accordingly, our score on positive solitude is 0.74659, which is almost 0. This result is meaningless in an actual situation since the score for the positive solitude can hardly be 0. Also, we found out that the p-value for the intercept is more significant than the significance level of 0.05, which further proves my statement that this intercept estimate is meaningless. Then, for all of the predictors, we can find out that all p values are less than the significance level of 0.05. Therefore, I conclude that we have strong evidence to support our null hypothesis; thus, the positive solitude affect is highly correlated with age, social quality, and self-efficacy.\
-Now, let's discuss the estimations for each preditor. The estimate for the age is 0.24844, which means that one year increase in age while holding other variables constant will lead to a 0.24844 increase in the score for the positive solitude experience. This result shows that age has a positive relationship with the positive solitude affect, as we expect, but the impact on the positive solitude affect is relatively tiny. As for the social quality, the estimation for the social_quality is 5.96085, which means that one score increase in the social_qualoity while holding other variables constant will lead to a 5.96085 increase in the score for the positive solitude experience. This result shows that the social_quality do a positive relationship with the positive solitude affect, as we expect, and the impact on the positive solitude affect is significant. Lastly, for the self-efficacy, since we have not dived into this concept earlier in this paper, I will first introduce what self-efficacy refers to. Self-efficacy refers to an individual's belief in their capacity to execute behaviors necessary to produce specific performance attainments[@american]. The estimation for the social_quality is 5.78392, which means that one score increase in the self_efficacy while holding other variables constant will lead to a 5.78392 increase in the score for the positive solitude experience. This result shows that the self_efficacy has a positive relationship with the positive solitude affect and significantly impacts the positive solitude affect.
+Now, let's discuss the estimations for each predictor. The estimate for the age is 0.24844, which means that one year increase in age while holding other variables constant will lead to a 0.24844 increase in the score for the positive solitude experience. This result shows that age has a positive relationship with the positive solitude affect, as we expect, but the impact on the positive solitude affect is relatively tiny. As for the social quality, the estimation for the social_quality is 5.96085, which means that one score increase in the social_qualoity while holding other variables constant will lead to a 5.96085 increase in the score for the positive solitude experience. This result shows that the social_quality do a positive relationship with the positive solitude affect, as we expect, and the impact on the positive solitude affect is significant. Lastly, for the self-efficacy, since we have not dived into this concept earlier in this paper, I will first introduce what self-efficacy refers to. Self-efficacy refers to an individual's belief in their capacity to execute behaviors necessary to produce specific performance attainments[@american]. The estimation for the social_quality is 5.78392, which means that one score increase in the self_efficacy while holding other variables constant will lead to a 5.78392 increase in the score for the positive solitude experience. This result shows that the self_efficacy has a positive relationship with the positive solitude affect and significantly impacts the positive solitude affect.
 
-Let's also look at the model for the negative solitude affect. The following table includes the estimated results for this model(table4).
+Let's also look at the model for the negative solitude affect. The following table includes the estimated results for this model(Table \@ref(tab:negt).
 
-```{r}
+```{r negt}
+#create dataframe and generate table
 varn=c("intercept","age","social_quality","anxiety")
 estn=c(50.09895,-0.14323,-6.83339,4.33072)
 pn=c(2.82*10^-7,0.00695,0.00014,0.00743)
@@ -339,6 +364,153 @@ I want to mention the relationship between social quality and the total network 
 \appendix
 
 # Appendix {-}
+
+## Data Sheet
+
+**Motivation**
+
+1. *For what purpose was the dataset created? Was there a specific task in mind? Was there a specific gap that needed to be filled? Please provide a description.*
+    - The original dataset was gathered during a experiment at the University of British Columbia. One hundred community-dwelling adults aged 50–85 years (64 percent female; 56 percent East Asian, 36 percent European, 8% other/mixed heritage) and 50 students aged 18–28 years (92 percent female; 42 percent East Asian, 22 percent European, 36 percent other/mixed heritage) each completed approximately 30 daily life assessments on their current and desired social situation, thoughts, and affect over ten days for this experiment. It was used to investigate the predictors of distinct types of solitude experiences in daily life.
+2. *Who created the dataset (for example, which team, research group) and on behalf of which entity (for example, company, institution, organization)?*
+    - Jennifer C. Lay, Theresa Pauly, Peter Graf, Jeremy C. Biesanz and Christiane A. Hoppmann from department of Psychology inUniversity of British Columbia created this dataset.
+3. *Who funded the creation of the dataset? If there is an associated grant, please provide the name of the grantor and the grant name and number.*
+    - Vancouver Foundation grant to Christiane Hoppmann, Sandra Petrozzi, Atiya Mahmood, and Peter Graf; University of British Columbia Faculty of Arts grant to Christiane Hoppmann; University of British Columbia Alpha Mater Society grant to Jennifer Lay; support from Michael Smith Foundation for Health Research and
+the Canada Research Chairs Programme to Christiane Hoppmann; support from Social Sciences and Humanities Research Council of Canada (Vanier CGS Program) to Jennifer Lay.
+4. *Any other comments?*
+    - No
+
+**Composition**
+
+1. *What do the instances that comprise the dataset represent (for example, documents, photos, people, countries)? Are there multiple types of instances (for example, movies, users, and ratings; people and interactions between them; nodes and edges)? Please provide a description.*
+	- The only instance is people
+2. *How many instances are there in total (of each type, if appropriate)?*
+	- 150
+3. *Does the dataset contain all possible instances or is it a sample (not necessarily random) of instances from a larger set? If the dataset is a sample, then what is the larger set? Is the sample representative of the larger set (for example, geographic coverage)? If so, please describe how this representativeness was validated/verified. If it is not representative of the larger set, please describe why not (for example, to cover a more diverse range of instances, because instances were withheld or unavailable).*
+	- The dataset is a sample of instances from a larger set and it is not randomly sampled. The
+sample is not a representative of the larger set, because this experiment does not randomly sample
+from the community using some random sampling methods like Simple Random Sampling or Stratified Random Sampling, and this may lead to the selection bias.
+4. *What data does each instance consist of? "Raw" data (for example, unprocessed text or images) or features? In either case, please provide a description.*
+	- Individual differences (person-level) and temporal sampling (momentary level) variables are included in this dataset. Individual difference variables are collected before and after the trials; this variable contains participants' personal information such as age, gender, and social network size. Every participant's different variables in each row are the same.On the other hand, the time sampling variables contain the data gathered during the experiments. The sampling variables' results are unique in every single row. 
+5. *Is there a label or target associated with each instance? If so, please provide a description.*
+	- There is no label associated with each instance because this is not a machine learning task.
+6. *Is any information missing from individual instances? If so, please provide a description, explaining why this information is missing (for example, because it was unavailable). This does not include intentionally removed information, but might include, for example, redacted text.*
+	- The socres on anxiety level and self-efficacy; the total network size are missing for some participants.
+7. *Are relationships between individual instances made explicit (for example, users' movie ratings, social network links)? If so, please describe how these relationships are made explicit.*
+	- No
+8. *Are there recommended data splits (for example, training, development/validation, testing)? If so, please provide a description of these splits, explaining the rationale behind them.*
+	- There is no recommended data split since this task is to do statistical analysis on an experiment,
+rather than a machine learning task that needs to split the data into training and test data.
+9. *Are there any errors, sources of noise, or redundancies in the dataset? If so, please provide a description.*
+	- There are few missing values in the dataset and there are some extreme values for the response
+variable and explanatory variables.
+10. *Is the dataset self-contained, or does it link to or otherwise rely on external resources (for example, websites, tweets, other datasets)? If it links to or relies on external resources, a) are there guarantees that they will exist, and remain constant, over time; b) are there official archival versions of the complete dataset (that is, including the external resources as they existed at the time the dataset was created); c) are there any restrictions (for example, licenses, fees) associated with any of the external resources that might apply to a dataset consumer? Please provide descriptions of all external resources and any restrictions associated with them, as well as links or other access points, as appropriate.*
+	- The dataset can be downloaded from the https://can01.safelinks.protection.outlook.com/?url=https%3A%2F%2Fdataverse.scholarsportal.info%2Fdataset.xhtml%3FpersistentId%3Ddoi%3A10.5683%2FSP2%2FBUPAJK&data=04%7C01%7Ckatherine.zhou%40mail.utoronto.ca%7Cebd0555947bb486ef22a08da11c255a0%7C78aac2262f034b4d9037b46d56c55210%7C0%7C0%7C637841823591320507%7CUnknown%7CTWFpbGZsb3d8eyJWIjoiMC4wLjAwMDAiLCJQIjoiV2luMzIiLCJBTiI6Ik1haWwiLCJXVCI6Mn0%3D%7C3000&sdata=5fIalUC9FTnFimlBSFELLyM4XLBdhR1rSuZUgD4RBnA%3D&reserved=0 website freely.
+11. *Does the dataset contain data that might be considered confidential (for example, data that is protected by legal privilege or by doctor-patient confidentiality, data that includes the content of individuals' non-public communications)? If so, please provide a description.*
+	- The dataset does not contain the confidential information, because each instance is represented
+using a unique id number and there is no demographic information included.
+12. *Does the dataset contain data that, if viewed directly, might be offensive, insulting, threatening, or might otherwise cause anxiety? If so, please describe why.*
+	- No
+13. *Does the dataset identify any sub-populations (for example, by age, gender)? If so, please describe how these subpopulations are identified and provide a description of their respective distributions within the dataset.*
+	- The dataset identifies two subgroup by age-one group is composed of students aged 18-28 years old and another is group of dwelling adults aged 50-88 years old.
+14. *Is it possible to identify individuals (that is, one or more natural persons), either directly or indirectly (that is, in combination with other data) from the dataset? If so, please describe how.*
+	- It is possible to identify individuals directly by the unique id number.
+15. *Does the dataset contain data that might be considered sensitive in any way (for example, data that reveals race or ethnic origins, sexual orientations, religious beliefs, political opinions or union memberships, or locations; financial or health data; biometric or genetic data; forms of government identification, such as social security numbers; criminal history)? If so, please provide a description.*
+	- No
+16. *Any other comments?*
+	- No
+
+**Collection process**
+
+1. *How was the data associated with each instance acquired? Was the data directly observable (for example, raw text, movie ratings), reported by subjects (for example, survey responses), or indirectly inferred/derived from other data (for example, part-of-speech tags, model-based guesses for age or language)? If the data was reported by subjects or indirectly inferred/derived from other data, was the data validated/verified? If so, please describe how.*
+	- One hundred community-dwelling adults aged 50–85 years (64 percent female; 56 percent East Asian, 36 percent European, 8% other/mixed heritage) and 50 students aged 18–28 years (92 percent female; 42 percent East Asian, 22 percent European, 36 percent other/mixed heritage) each completed approximately 30 daily life assessments on their current and desired social situation, thoughts, and affect over ten days for this experiment. Participants completed questionnaires evaluating individual differences (e.g., trait self-reflection) and were trained to use portable electronic devices during the baseline session. Then, starting the day after the baseline session, individuals were beeped three times daily (once in the morning, once in the afternoon, and once in the evening) over a 10-day time sampling period. On each occasion, participants used a touch screen interface on an iPod or iPad mini to answer a brief questionnaire about their thoughts, feelings, and existing and ideal social situation
+2. *What mechanisms or procedures were used to collect the data (for example, hardware apparatuses or sensors, manual human curation, software programs, software APIs)? How were these mechanisms or procedures validated?*
+	- The data was recorded by experimenters manually. There may exist measurement error, but how this data collection procedure was validated was unknown.
+3. *If the dataset is a sample from a larger set, what was the sampling strategy (for example, deterministic, probabilistic with specific sampling probabilities)?*
+	- No random sampling method is used.
+4. *Who was involved in the data collection process (for example, students, crowdworkers, contractors) and how were they compensated (for example, how much were crowdworkers paid)?*
+	- Students and adults. Older adults were reimbursed with up to $100 or the iPad mini they had used in the study. Students were reimbursed with 3 course credits and up to $30 (differences in compensation between the two samples reflect that older adults also attended a 6‐month follow‐up session, whereas students did not).
+5. *Over what timeframe was the data collected? Does this timeframe match the creation timeframe of the data associated with the instances (for example, recent crawl of old news articles)? If not, please describe the timeframe in which the data associated with the instances was created.*
+	- Data were collected year‐round (August2014–May 2016). This timeframe matches the creation timeframe of the data associated with the instances, because this data was collected
+during the implementation of the experiment to record its results.
+6. *Were any ethical review processes conducted (for example, by an institutional review board)? If so, please provide a description of these review processes, including the outcomes, as well as a link or other access point to any supporting documentation.*
+	- The study was approved by the university behavioral research ethics board.
+7. *Did you collect the data from the individuals in question directly, or obtain it via third parties or other sources (for example, websites)?*
+	- Unkown
+8. *Were the individuals in question notified about the data collection? If so, please describe (or show with screenshots or other information) how notice was provided, and provide a link or other access point to, or otherwise reproduce, the exact language of the notification itself.*
+	- Unkown
+9. *Did the individuals in question consent to the collection and use of their data? If so, please describe (or show with screenshots or other information) how consent was requested and provided, and provide a link or other access point to, or otherwise reproduce, the exact language to which the individuals consented.*
+	- Unknown
+10. *If consent was obtained, were the consenting individuals provided with a mechanism to revoke their consent in the future or for certain uses? If so, please provide a description, as well as a link or other access point to the mechanism (if appropriate).*
+	- Unkown
+11. *Has an analysis of the potential impact of the dataset and its use on data subjects (for example, a data protection impact analysis) been conducted? If so, please provide a description of this analysis, including the outcomes, as well as a link or other access point to any supporting documentation.*
+	- Yes. Available at https://www.researchgate.net/publication/326371343_By_Myself_and_Liking_It_Predictors_of_Distinct_Types_of_Solitude_Experiences_in_Daily_Life
+12. *Any other comments?*
+	- No
+
+**Preprocessing/cleaning/labeling**
+
+1. *Was any preprocessing/cleaning/labeling of the data done (for example, discretization or bucketing, tokenization, part-of-speech tagging, SIFT feature extraction, removal of instances, processing of missing values)? If so, please provide a description. If not, you may skip the remaining questions in this section.*
+	- Since most data in the dataset is categorical/discrete/continuous data and a few missing values exist
+in the dataset, there was no preprocessing/cleaning/labeling of the data done. But I cleaned the data
+by removing the missing values and muating a few columns.
+2. *Was the "raw" data saved in addition to the preprocessed/cleaned/labeled data (for example, to support unanticipated future uses)? If so, please provide a link or other access point to the "raw" data.*
+	- No need to answer since the data itself is raw data.
+3. *Is the software that was used to preprocess/clean/label the data available? If so, please provide a link or other access point.*
+	- No need to answer since the data itself is raw data.
+4. *Any other comments?*
+	- No
+
+**Uses**
+
+1. *Has the dataset been used for any tasks already? If so, please provide a description.*
+	- Yes. Available at https://www.researchgate.net/publication/326371343_By_Myself_and_Liking_It_Predictors_of_Distinct_Types_of_Solitude_Experiences_in_Daily_Life
+2. *Is there a repository that links to any or all papers or systems that use the dataset? If so, please provide a link or other access point.*
+	- Unkown
+3. *What (other) tasks could the dataset be used for?*
+	- Unknown
+4. *Is there anything about the composition of the dataset or the way it was collected and preprocessed/cleaned/labeled that might impact future uses? For example, is there anything that a dataset consumer might need to know to avoid uses that could result in unfair treatment of individuals or groups (for example, stereotyping, quality of service issues) or other risks or harms (for example, legal risks, financial harms)? If so, please provide a description. Is there anything a dataset consumer could do to mitigate these risks or harms?*
+	- I don't think so.
+5. *Are there tasks for which the dataset should not be used? If so, please provide a description.*
+	- Unknown
+6. *Any other comments?*
+	- No
+
+**Distribution**
+
+1. *Will the dataset be distributed to third parties outside of the entity (for example, company, institution, organization) on behalf of which the dataset was created? If so, please provide a description.*
+	- Yes, it can be download freely online.
+2. *How will the dataset be distributed (for example, tarball on website, API, GitHub)? Does the dataset have a digital object identifier (DOI)?*
+	- On website
+3. *When will the dataset be distributed?*
+	- The dataset was distributed on 2019
+4. *Will the dataset be distributed under a copyright or other intellectual property (IP) license, and/or under applicable terms of use (ToU)? If so, please describe this license and/ or ToU, and provide a link or other access point to, or otherwise reproduce, any relevant licensing terms or ToU, as well as any fees associated with these restrictions.*
+	- Unknown
+5. *Have any third parties imposed IP-based or other restrictions on the data associated with the instances? If so, please describe these restrictions, and provide a link or other access point to, or otherwise reproduce, any relevant licensing terms, as well as any fees associated with these restrictions.*
+	- I did not see any restrictions.
+6. *Do any export controls or other regulatory restrictions apply to the dataset or to individual instances? If so, please describe these restrictions, and provide a link or other access point to, or otherwise reproduce, any supporting documentation.*
+	- I did not see any restrictions.
+7. *Any other comments?*
+	- No
+
+**Maintenance**
+
+1. *Who will be supporting/hosting/maintaining the dataset?*
+	- The original authors who performed the experiment and collected the data are supporting/hosting/
+maintaining the dataset.
+2. *How can the owner/curator/manager of the dataset be contacted (for example, email address)?*
+	- You can email the Scholars Portal Dataverse Support
+3. *Is there an erratum? If so, please provide a link or other access point.*
+	- Unknown
+4. *Will the dataset be updated (for example, to correct labeling errors, add new instances, delete instances)? If so, please describe how often, by whom, and how updates will be communicated to dataset consumers (for example, mailing list, GitHub)?*
+	- Unknown. The dataset was downloaded from the website.
+5. *If the dataset relates to people, are there applicable limits on the retention of the data associated with the instances (for example, were the individuals in question told that their data would be retained for a fixed period of time and then deleted)? If so, please describe these limits and explain how they will be enforced.*
+	- Unknown
+6. *Will older versions of the dataset continue to be supported/hosted/maintained? If so, please describe how. If not, please describe how its obsolescence will be communicated to dataset consumers.*
+	- Unknown
+7. *If others want to extend/augment/build on/contribute to the dataset, is there a mechanism for them to do so? If so, please provide a description. Will these contributions be validated/verified? If so, please describe how. If not, why not? Is there a process for communicating/distributing these contributions to dataset consumers? If so, please provide a description.*
+	- Unknown
+8. *Any other comments?*
+	- No
 
 
 \newpage
