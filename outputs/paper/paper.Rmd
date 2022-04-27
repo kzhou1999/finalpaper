@@ -1,1 +1,331 @@
 
+---
+title: "The Puzzle of the Distinct Solitude Experiences in Our Daily Life"
+subtitle: "Greater Social Quality, Higher Level of Self-Efficacy and Less Anxiety are Keys to A Better Solitude Experiences."
+thanks: "Code and data are available at:https://github.com/kzhou1999/the_puzzle_of_solitude_experiences "
+author: "Qiao Zhou"
+date: "`r format(Sys.time(), '% 05 % April % 2022')`"
+abstract: "Solitude is a double-edged sword; people have quite distinct solitude experiences; whether positive or negative. This report utilizes the data from an experiment to:1)figure out which factors correlate with the positive solitude experiences and negative Solitude experiences. And 2)discuss the potential bias in our data. According to the data and analysis, a better social quality, higher self-efficacy, and greater age will lead to better solitude experiences. In contrast, a higher level of anxiety will lead to worse solitary experiences. However, as our dataset is too small and not representative to some extent, our conclusion may get less accurate than we expect.  \\par \\textbf{Keywords:} Solitude Experience , Linear Regression, Experiment, BIC Selection" 
+header-includes:
+  - \usepackage{float}
+  - \floatplacement{figure}{H}
+output:
+  bookdown::pdf_document2
+toc: FALSE
+bibliography: references.bib
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE,fig.width=8,fig.height=4)
+library(readr)
+library(here)
+library(tidyverse)
+library(car)
+library(dplyr)
+library(patchwork)
+library(kableExtra)
+```
+
+# Introduction
+
+Solitude is a ubiquitous experience in our daily lives[@hopp], especially during the covid pandemic. And solitude is a double-edged sword[@hopp]. Some people prefer time alone over time spent with others, while others feel very depressive and lonely when they experience solitude. This fact made me curious about how solitude can be both lonely and nourishing. What's more, I have learned that many people misunderstand this word as loneliness and most psychological research on solitude emphasizes the negative correlates and consequences of loneliness[@long]. This fact may imply that most people feel inadequate and lonely when they experience solitude, which makes it even worthwhile for me to investigate the factors impacting solitude experiences. Hopefully, my research paper will help people get better solitude experiences. 
+
+This paper will investigate what factors will impact our solitude experiences. I divided the solitude experiences into two types- one reflecting negative experiences such as loneliness and complex thoughts(negative solitude experiences), and the other reflecting positive experiences such as calm effects and pleasant thoughts(positive solitude experiences)[@hopp]. For further investigation, I aim to explore the data to discuss the potential correlation between the selected factors( age, gender, the rate of overall well being, social network size, social relationship quality, social self-efficacy, the self-reflection, solitude time, and anxiety level) and both the positive and negative solitude experiences. Based on my common sense and prior research, my initial hypothesis is that all of the selected variables correlate with both solitude experiences. However, the results are not the same as my expectation. The results show that people with better social quality and greater age will have more positive solitude experiences and fewer negative solitude experiences. Also, our results have shown some other factors determining the solitude experiences, such as that people with higher anxiety levels will experience more serious negative solitude experiences. And the people with a higher rate of self-reflection will experience more positive solitude. Besides, all the variables we didn't mention in the above results have little or no effect on both solitude experiences.
+
+The rest of the paper is organized as follows: In the Data section (section 2), I explain the data background, the data overview, the cleaning process, and analysis of the potential factors influencing the solitude experiences. In the Model section (section 3), I first introduce the methodology I use for this section. Then, I fit two linear models using all of the selected variables(one for the positive solitude experiences and the other one for the negative solitude experiences). And finally, I made a variables selection for each model and determined the final models. In the Result section(section4), I interpret both the final models I got from the last section to show the impact of the final selected variables corresponding to both positive and negative solitude experiences. In the discussion (section 5), I comment on the potential bias in the paper, such as the limitation in data, p-hacking, and other possible variables with correlation to the solitude experiences not included in the dataset. And I will suggest what we should do to further investigate this topic in the future.
+
+# Data
+\
+The research uses the R language[@rstudio] as its foundation. I have used packages such as tidyverse[@tidy], here[@here], and readr[@readr] to prepare data for this project. I then used dplyr[@dplyr], KableExtra[@extra] and knitr[@knitr] to generate table ; patchwork[patch] and ggplot2[@ggplot2] to generate and organize plots.
+\
+```{r,warning=FALSE, message=FALSE}
+#read the raw data in
+raw_data <- read_csv(here("inputs/data/HS_JPvars-only_11Jan2019_complete-cases-only.csv"))
+#add two columns into the data, one represents the mean positive affect for each participate over 10days,
+#the other one represents the mean negative affect for each participate over 10days.
+raw_data<-raw_data%>%group_by(idPartID)%>%
+  mutate(mean_pos_affect=(mean(tsHiArPosAffect)+mean(tsLoArPosAffect))*1/2,
+         mean_neg_affect=(mean(tsHiArNegAffect)+mean(tsLoArNegAffect))*1/2)
+#rename my interested column and add them as new columns in our data
+raw_data<-raw_data %>% 
+  mutate(sub_health=as.numeric(idSubOverallWellbeing),,age=as.numeric(idAge),gender=as.numeric(idGender),
+         network_size=as.numeric(idSocNetworkSize),social_quality=as.numeric(idSocRelQuality),
+         self_efficacy=as.numeric(idSocSelfEfficacy),self_reflection=as.numeric(idSelfReflection),
+         anxiety=as.numeric(idSocAnxiety),solitude=as.numeric(idOverSolitude))
+#select columns 
+clean_data<-raw_data%>%
+  select(idPartID,tsAssessNumber,sub_health,age,gender,network_size,social_quality,self_efficacy,self_reflection,solitude,anxiety,mean_pos_affect,mean_neg_affect)
+#filter out replicate rows to get each participate's data
+clean_data<-clean_data%>%
+  filter(tsAssessNumber==1)
+#filter out NAs
+clean_data<-clean_data%>%
+  filter(!is.na(sub_health)&!is.na(age)&!is.na(gender)&!is.na(network_size)&!is.na(social_quality)&!is.na(self_efficacy)&!is.na(self_reflection)&!is.na(solitude)&!is.na(anxiety)&!is.na(mean_pos_affect)&!is.na(mean_pos_affect)&!is.na(idPartID)&!is.na(tsAssessNumber))
+#delete the column for assesment number and get my final data
+final_data<-clean_data%>%
+   select(idPartID,sub_health,age,gender,network_size,social_quality,self_efficacy,self_reflection,solitude,anxiety,mean_pos_affect,mean_neg_affect)
+#write the final data in a csv file and put it in the input folder
+write_csv(final_data, here("inputs/data/final_data.csv"))
+```
+
+## Data Source and the Experiment
+The original dataset was gathered during a 2018 experiment at the University of British Columbia. One hundred community-dwelling adults aged 50–85 years (64 percent female; 56 percent East Asian, 36 percent European, 8% other/mixed heritage) and 50 students aged 18–28 years (92 percent female; 42 percent East Asian, 22 percent European, 36 percent other/mixed heritage) each completed approximately 30 daily life assessments on their current and desired social situation, thoughts, and affect over ten days for this experiment[@hopp]. A baseline session, a time-sampling phase, and an exit session were all part of this experiment. Participants completed questionnaires evaluating individual differences (e.g., trait self-reflection) and were trained to use portable electronic devices during the baseline session. Then, starting the day after the baseline session, individuals were beeped three times daily (once in the morning, once in the afternoon, and once in the evening) over a 10-day time sampling period. On each occasion, participants used a touch screen interface on an iPod or iPad mini to answer a brief questionnaire about their thoughts, feelings, and existing and ideal social situation [@hopp].\
+
+## Data Overview and Data Cleaning process
+
+There are 4571 rows and 51 variables in the original dataset. It contains all the experimental survey results from 150 observations; each participant completed the same survey around 30 times over ten days (3 to 4 times a day). As a result, each survey is recorded in one row. Thus each participant's response is stored in 30 rows. Individual differences (person-level) and temporal sampling (momentary level) variables are included in this dataset. Individual difference variables are collected before and after the trials; this variable contains participants' personal information such as age, gender, and social network size. Every participant's different variables in each row are the same.On the other hand, the time sampling variables contain the data gathered during the experiments. The sampling variables' results are unique in every single row. Every row has a different set of results for the sampling variables. Every participant's number of surveys (from 1 to 30) was recorded in a variable named Assessment Number[@hopp].\
+I did some data cleaning on the original data set because I intend to investigate the potential correlation between the selected factors (age, gender, rate of overall well-being, social network size, social relationship quality, social self-efficacy, self-reflection, solitude time, and anxiety level) and both positive and negative solitude experiences. First, I calculate the mean value of each participant's positive affect (average of the high-arousal positive affect and low-arousal positive affect) and negative affect((average of the high-arousal negative affect and low-arousal negative affect) and save them into these two variable columns for further use. Then, I filter out all rows whose assessment number does not equal 1. This method allows me to obtain individual differences and the mean value of positive and negative solitude emotion scores over ten days, with each row representing a unique participant. Then I remove all of the empty cells. Finally, I chose all of the required variables to create the final dataset I need for this study.
+The definitions of the variables in the cleaned data are shown below.\
+
+```{r,warning=FALSE}
+vardef=data_frame("Variables"=c("sub_health", "age", "gender", "network_size", "social quality", "self_efficacy", "self_reflection", "solitude", "anxiety", "mean_pos_affect", "mean_neg_affect"),
+                  "Definition"=c("The rate of the overall wellbeing on the scale of 5", "Age at baseline session in years", "1 = female, 0 = male", "Total network size", "The social relationship quality of participants on the scale of 5","Social self-efficacy score on the scale of 5","Self-reflection score on the scale of 5","Overall time in solitude in proportion","Personal anxiety score for their social relationship on the scale of 5","The average positive solitude experience in 10 days","The average negative solitude experience in 10 days"))
+knitr::kable(vardef,caption="Definitions of Variables")
+```
+
+## Descriptive Analysis
+
+### Overall distribution of solitude experiences
+
+```{r dis,fig.cap="Distribution of solitude experiences",fig.position="H"}
+#add two new columns 
+Positive_solitude <- final_data%>%mutate(value=mean_pos_affect)
+Negative_solitude <-final_data%>%mutate(value=mean_neg_affect)
+#combine the two dataframes into one.  
+Positive_solitude$Experience_type <- 'Positive solitude experience'
+Negative_solitude$Experience_type <- 'Negative solitude experience'
+exp <- rbind(Positive_solitude, Negative_solitude)
+#draw the plot
+ggplot(exp, aes(value, fill = Experience_type)) + 
+   geom_histogram(alpha = 0.4, position = 'identity',bins = 23)
+```
+
+Let's look at the above graph(Figure \@ref(fig:dis)). For the negative solitude experiences painted in pink, we can observe that the distribution follows a normal distribution approximately where the peak is located at around 25 scores. As for the positive solitude experiences painted in blue, its distribution is more likely to be right-skewed and bimodal. We observe that the first peak is around 50 and then decreases sharply. When the score is around 65, the graph reaches the second peak. From this figure (Figure \@ref(fig: dis)), we can conclude that the negative experiences distribute more evenly than the positive experiences. And there is only a small amount of people are having delightful solitude experiences, which further enhances the need to investigate what contributes to good solitude experiences. Fortunately, the average score on the negative solitude experience is lower than the average score on the positive solitude experience. This fact implies that people are not getting severe negative experiences in solitude.
+
+### Solitude experiences and the social quality
+
+```{r pos,fig.cap="Relationship between the social quality and the positive solitude experiences",fig.width=6,fig.height=2, message=FALSE}
+final_data%>%
+  ggplot(aes(x=social_quality,y=mean_pos_affect,)) +labs(x="social quality",y="Positive solitude experiences")+
+  geom_point()+
+  geom_smooth(method = "lm")
+```
+
+```{r neg,fig.cap="Relationship between the social quality and the positive solitude experiences",fig.width=6,fig.height=2,message=FALSE}
+final_data%>%
+  ggplot(aes(x=social_quality,y=mean_neg_affect,)) +labs(x="social quality",y="Negative solitude experiences")+
+  geom_point()+
+  geom_smooth(method = "lm")
+```
+
+From the above graphs, we can observe linear trends in both plots. Better social quality will lead to a higher score on the positive solitude affect(Figure \@ref(fig:pos)), which means a positive linear relationship between the positive solitude experience and the social quality. As for another graph, on the other hand, we can notice that as the social quality becomes better, the score on negative solitude experiences gets lower(Figure \@ref(fig:neg)), which means that there is a negative linear relationship between the negative solitude experiences and the social quality. These facts imply that better quality is helpful for people to get a better solitude experience.
+
+```{r den, fig.cap="Relationship between the social quality and the network size"}
+final_data %>% ggplot(aes(x = network_size, y = social_quality)) +
+  stat_density_2d(aes(fill = ..level..), geom = "polygon", colour = "white") + labs(
+    x = "network size",
+    y = "social quality",
+  )+
+  theme(panel.background = element_rect(fill = "gray98"),
+    panel.grid.major.y = element_line(
+      color = "gray",
+      size = 0.5,
+      linetype = 1
+    ),
+    axis.line =  element_line(
+      color = "black",
+      size = 0.5,
+      linetype = 1
+    )
+  )
+```
+
+Due to the rapid development of technology, social media has become a considerable component of people's social life. Thus, I assume primarily that the network size will influence the social quality to a great extent. However, I am not sure whether this influence will be good or bad. Because spending too much time on the social media will be beneficial for some people since social media helps them to keep in touch with their friends more quickly, but it will also harm people's social quality since people will have less time to hang out and communicate with their friends in real life. To investigate further the relationship between the social quality and the network size, I use our trimmed dataset to plot a density graph(Figure \@ref(fig:den)). From the above plot, I observed that participants with high network size(total network size greater than 30) tend to have better social quality(with a score on social media more significant than 3). As for the people with relatively smaller network sizes, we can see that their scores on social quality range from the lowest to the highest. But we can still observe that most people with relatively smaller network sizes are still getting a pretty satisfactory score on the social quality at around 3.5. According to the above observations, we can conclude that the network size may have a little bit positive effect on social quality. Still, there is no sign that it dramatically impacts social quality.\
+
+### Solitude experiences and anxiety
+
+```{r ag, message=FALSE,fig.cap="Relationship between the anxiety and the solitude experiences based on gender"}
+p1<-final_data%>%mutate(Gender=case_when(gender==1~"female", gender==0~"male"))%>%
+  ggplot(aes(x=anxiety,y=mean_pos_affect,color=Gender)) +labs(x="anxiety",y="Positivee solitude experiences")+
+  geom_point()+
+  geom_smooth(method = "lm")
+
+p2<-final_data%>%mutate(Gender=case_when(gender==1~"female", gender==0~"male"))%>%
+  ggplot(aes(x=anxiety,y=mean_neg_affect,color=Gender)) +labs(x="anxiety",y="Negative solitude experiences")+
+  geom_point()+
+  geom_smooth(method = "lm")
+
+p1+p2
+
+```
+
+\
+The graph above(Figure \@ref(fig:ag)) shows the relationships between the anxiety level and the solitude experiences based on gender. We can see a negative linear trend between the positive solitude affect and the anxiety level. At the same time, there is a positive linear trend between the negative solitude affect and the anxiety level. However, if we take a deep dive into the two plots above(Figure \@ref(fig:ag)), we can notice the trend in both plots differs much in groups of the gender. For the plot on the left, we can see that line(blue line) indicating the impact the anxiety level brings to the men's positive solitude experience is almost horizontal, which suggests that the anxiety level is not affecting the men's positive solitude experience much. However, let's look at the blue line in the left plot. We can notice that the higher anxiety level significantly decreases the score on the positive solitude experience since this line is rather steep. As for the right plot, similarly, we can observe that the red line is more vertical than the blue line, which further proves that the anxiety level affects women's negative solitude more severely than men. Also, for both plot(Figure \@ref(fig:ag)), we can see that all of the people with a high level of anxiety(anxiety level greater than 3.5) are women; this further suggest the differences in the thinking patterns of men and women. Our data concludes that women are more likely to have high anxiety levels and are more easily affected by the anxiety.
+\
+
+### Solitude experiences and age
+
+```{r box, fig.caption="Relationship between the age and the solitude experiences"}
+p3<-final_data%>%
+  mutate(Age_group=case_when(age<50~"Student",age>=49~"Older adult"))%>%
+  ggplot(aes(y=mean_pos_affect, x=Age_group))+geom_boxplot(color="black",fill="light blue")+labs(x="Age group",y="Positive solitude affect")+ coord_flip()
+
+p4<-final_data%>%
+  mutate(Age_group=case_when(age<50~"Student",age>=49~"Older adult"))%>%
+  ggplot(aes(y=mean_neg_affect, x=Age_group))+geom_boxplot(color="black",fill="light blue")+labs(x="Age group",y="Negatice solitude affect")+ coord_flip()
+
+p3+p4
+
+```
+
+In the original experiment, all participants were divided into two groups based on age. The participants are divided into one hundred community‐dwelling adults aged 50–85 years and 50 undergraduate students aged 18–28 years. I did the same grouping on age for my dataset. I plot two boxplots(Figure \@ref(fig:box)) to compare the score on positive and negative solitude experiences between different age groups. Based on my common sense, I will claim that the older group will have a better solitude experience because they are more mature than the students. They can handle the negative affect when being isolated. Now, I will look at the above graphs(Figure \@ref(fig:box)) to check whether my assumptions are correct. For the positive solitude affect(plot on the left), we notice that the older adult group has a mean score of around 60, which is much higher than the student group. As for the negative solitude affect, on the other hand, the student group has a higher score on the negative solitude affect than the older adult group. These facts match my assumption well.
+
+# Model
+
+```{r ,echo=FALSE, include=FALSE}
+pos_mod=lm(mean_pos_affect~age+gender+network_size+social_quality+self_efficacy+self_reflection+solitude+anxiety+sub_health,data=final_data)
+neg_mod=lm(mean_neg_affect~age+gender+network_size+social_quality+self_efficacy+self_reflection+solitude+anxiety+sub_health,data=final_data)
+summary(pos_mod)
+summary(neg_mod)
+pos_vif=vif(pos_mod)
+neg_vif=vif(neg_mod)
+```
+
+Before starting to fit models, I would like to introduce the methods I will use to fit and choose models.
+
+## Methods
+
+In this paper, I will fit linear models to determine the relationships between the selected factors and the solitude experiences. Thus, I would like first to introduce the linear regression and the linear model. After initially fitting the model, I will check the VIF values and the hypothesis tests for the model to select the predictors, and I will use backward selection(BIC) to determine the final model. Thus, I will introduce the VIF values and the BIC backward selection in the following.
+
+### Linear Regression
+
+By fitting a linear equation to observed data, linear regression models the connection between many variables. The linear regression model can be used to predict a particular variable. Independent variables are the variables we utilized to predict care. We expect these variables to have no repeating information, as their name suggests. The dependent variable is the variable we're trying to forecast. \
+Here is the general linear regression model:
+$$Y = \beta_0 + \beta_1x_1+\beta_2x_2+...+\beta_ix_i + \epsilon_i$$
+$x_i$ represents the independent variable for the above equation, while $y_i$ represents the dependent variable.$\beta_0$ represents the y-intercept of the multilinear regression model. It demonstrates the value of the dependent variable when $x_i$ is zero. This variable can be meaningless at times. $\beta_i$ is known as the regression coefficient. These numbers indicate how much the dependant value is expected to vary as $x_i$ changes. $\epsilon_0$ is the residual, which is the genuine deviations between the observed values and their means.
+\
+The following are the assumptions for the linear model[@cfi]:
+
+**Linearity**
+We assume all the explanatory variable $x_i$ have a linear relationship to the dependent variable $y_i$
+
+**Constant Variance**
+The error should have constant variance. In other words, this assumption suggests the amount of error in the residual for each point is the same and equal to $\sigma^2$
+
+**Normality**
+All the errors should follow a normal distribution. The mean value should be 0, and the variance is $\sigma^2$.
+
+**Independence**
+All the errors should be independent of each other. It should be independently and identically distributed. If errors are dependent, it will cause the predictive power of the model will be worse somewhere.
+
+**Independence of observations**
+The observations in our model should be independent. It means there should be any relation between observations. We cannot find a pattern or relationship between observations by simply looking at the data frame. Every observation cannot affect others.
+
+### VIF Values
+
+The VIF is used to detect multicollinearity in a linear regression model. It will estimate how much a linear regression coefficient variance is inflated due to multicollinearity. The range of the variance inflation factors range starts from 1. The value of VIF interpreted what percentage of the error is inflated for each coefficient. Thus, we want the VIF as small as possible, and we will remove the variables with high VIF values[@VIF].
+
+### BIC and backward selection
+
+First, I will explain the process of backward selection:
+
+1. Starts with the model that contains all the variables under previous consideration (also called the Full Model).
+
+2. Removing the minor significant variables from the model.
+
+3. Stop when the stopping rule is reached out. I use the BIC value as my stopping rule in the Backward selection. I want to find the model with the best AIC value using the "step()" function. The BIC (Bayesian information criterion) evaluates whether the model fits the data. We use the Backward selection function to find the lowest possible BIC. 
+
+### Hypothesis test
+
+The hypothesis test can test a claim about a proper parameter in a population. We will do the hypothesis test for every single coefficient for the multilinear regression model. Here is how the procedure:
+
+1. First, We need to state the hypothesis, alternate hypothesis, and significance level. In this model, I am interested in the value of coefficients.
+
+2. Then, we can calculate the p-value for every coefficient.
+
+3. we can compare the p-value with a significant level and get our conclusion. 
+
+4. If the significant level is greater than the p-value, we can conclude that we have no evidence to support our null hypothesis.
+
+Note: In our paper, the significance level I use is $alpha$=0.05
+
+## Model fitting and selection
+
+I fit two models using all of the selected variables, one for the positive solitude affect and the other one for the negative solitude affect. The variables are age, gender, the rate of overall well being, social network size, social relationship quality, social self-efficacy, the self-reflection, solitude time, and anxiety level.\
+From the below table 2, we can see that all of the VIF values are relatively small. So, we decided to keep all those variables in the full models. Then, I use the backward selection to help me select the best model. Our full model for positive solitude affect contains nine variables: age, gender, the rate of overall well-being, social network size, social relationship quality, social self-efficacy, self-reflection, solitude time, and anxiety level. The backward selection model removes six variables from my full model. Thus, the backward selection model for the positive solitude experiences has only three variables; age, social quality, and self-efficacy. And those variables are concluded as having the most correlation with the positive solitude experiences. Our full model for the negative solitude affect contains nine variables as well. The backward selection model also removes six variables from my full model. Thus, the backward selection model for the negative solitude affect has three variables; age, social quality, and anxiety level. And those variables are concluded as having the most correlation with the negative solitude affect.\
+
+```{r tab, }
+Variable_pos <- c("age","gender","network_size","social_quality","self_efficacy","self_reflection","solitude",
+                  "anxiety","sub_health")
+Variable_neg <- c("age","gender","network_size","social_quality","self_efficacy","self_reflection","solitude",
+                  "anxiety","sub_health")
+vif_table<-data.frame(Variable_pos, pos_vif,Variable_neg, neg_vif)
+knitr::kable(vif_table, col.names = c("variables of positive solitude model", "vif value", "variables of negative solitude model", "vif value"), caption = "VIF value for the full linear models")%>%
+  kable_styling(latex_options = "HOLD_position")
+```
+
+**Final model(Positive solitude affect):**
+
+mean positive solitude affect = $\hat{\beta}_0$+$\hat{\beta}_1age$+$\hat{\beta}_2$social_ quality+$\hat{\beta}_3$self_efficacy+$\epsilon$
+
+**Final model(Negative solitude affect):**
+
+mean negative solitude affect = $\hat{\beta}_0$+$\hat{\beta}_1$age+$\hat{\beta}_2$social_ quality+$\hat{\beta}_3$anxiety+$\epsilon$
+
+```{r ,echo=FALSE, include=FALSE}
+m = length(final_data$mean_pos_affect)
+bic_pos = step(pos_mod, direction = "backward", k = log(m))
+n = length(final_data$mean_neg_affect)
+bic_pos = step(neg_mod, direction = "backward", k = log(n))
+final_pos_mod =lm(mean_pos_affect~age+social_quality+self_efficacy,data=final_data)
+summary(final_pos_mod)
+final_neg_mod =lm(mean_neg_affect~age+social_quality+anxiety,data=final_data)
+summary(final_neg_mod)
+```
+
+# Results
+
+Now, we can finally analyze our linear regression models. Let us first look at the model for the positive solitude affect. The following table includes the estimated result for this model(table3).
+
+```{r}
+varp=c("intercept","age","social_quality","self_efficacy")
+estp=c(0.74659,0.24844,5.96085,5.78392)
+pp=c(0.915136,1.8*10^(-8),0.000221,0.001318)
+mod1_table=data.frame("variables"=varp, "estimations"=estp,"p_values"=pp)
+knitr::kable(mod1_table,caption="The estimations and the p values for the positive solitude affect model")%>%
+  kable_styling(latex_options = "HOLD_position")
+```
+
+
+We first look at $\hat{\beta}_0$. This value is the intercept of our linear regression models. It means when the other variable equals 0. Accordingly, our score on positive solitude is 0.74659, which is almost 0. This result is meaningless in an actual situation since the score for the positive solitude can hardly be 0. Also, we found out that the p-value for the intercept is more significant than the significance level of 0.05, which further proves my statement that this intercept estimate is meaningless. Then, for all of the predictors, we can find out that all p values are less than the significance level of 0.05. Therefore, I conclude that we have strong evidence to support our null hypothesis; thus, the positive solitude affect is highly correlated with age, social quality, and self-efficacy.\
+Now, let's discuss the estimations for each preditor. The estimate for the age is 0.24844, which means that one year increase in age while holding other variables constant will lead to a 0.24844 increase in the score for the positive solitude experience. This result shows that age has a positive relationship with the positive solitude affect, as we expect, but the impact on the positive solitude affect is relatively tiny. As for the social quality, the estimation for the social_quality is 5.96085, which means that one score increase in the social_qualoity while holding other variables constant will lead to a 5.96085 increase in the score for the positive solitude experience. This result shows that the social_quality do a positive relationship with the positive solitude affect, as we expect, and the impact on the positive solitude affect is significant. Lastly, for the self-efficacy, since we have not dived into this concept earlier in this paper, I will first introduce what self-efficacy refers to. Self-efficacy refers to an individual's belief in their capacity to execute behaviors necessary to produce specific performance attainments[@american]. The estimation for the social_quality is 5.78392, which means that one score increase in the self_efficacy while holding other variables constant will lead to a 5.78392 increase in the score for the positive solitude experience. This result shows that the self_efficacy has a positive relationship with the positive solitude affect and significantly impacts the positive solitude affect.
+
+Let's also look at the model for the negative solitude affect. The following table includes the estimated results for this model(table4).
+
+```{r}
+varn=c("intercept","age","social_quality","anxiety")
+estn=c(50.09895,-0.14323,-6.83339,4.33072)
+pn=c(2.82*10^-7,0.00695,0.00014,0.00743)
+mod2_table=data.frame("variables"=varn, "estimations"=estn,"p_values"=pn)
+knitr::kable(mod2_table,caption="The estimations and the p values for the negative solitude affect model")%>%
+  kable_styling(latex_options = "HOLD_position")
+```
+
+We first look at $\hat{\beta}_0$. This value is the intercept of our linear regression models. It means when the other variable equals 0. Accordingly, our score on negative solitude is 50.09895. This result is significant since the p-value is very small. Then, for all of the predictors, we can find out that all p values are less than the significance level of 0.05. Therefore, I conclude that we have strong evidence to support our null hypothesis; thus, the positive solitude affect is highly correlated with age, social quality, and anxiety.\
+Now, let's discuss the estimations for each preditor. The estimation for the age is -0.14323, which means that one year increase in age while holding other variables constant will lead to a 0.14324 decrease in the score for the negative solitude experience. This result shows that age has a negative relationship with the negative solitude affect, as we expect, but the impact on the positive solitude affect is also tiny. As for the social quality, the estimation for the social_quality is -6.83339, which means that one score increase in the social_qualoity while holding other variables constant will lead to a 6.83339 decrease in the score for the negative solitude experience. This result shows that the social_quality  has a negative relationship with the negative solitude affect as we expect, and the impact on the negative solitude affect is significant. Lastly, for the anxiety, the estimation for the anxiety is 4.33072, which means that one score increases the anxiety level while holding other variables constant will lead to a 4.33072 increase in the score for the positive solitude experience. This result shows that anxiety does a positive relationship with the negative solitude affect, and the impact on the positive solitude affect is significant. (i.e., a higher level of anxiety will lead to more server negative solitude affect, which is not good)\
+To conclude these two models, we have learned that only four variables significantly correlate with the solitude experiences. Age is associated with both types of solitude experiences, and a greater age will lead to better solitude, though the impact of age on solitude experience is tiny. Social quality is correlated with both types of solitude experiences as well, as a better social quality will to a great extent, make the solitude experience better. Although self-efficacy is only shown to be related to the positive solitude affect, having a higher self-efficacy level can help improve the solitude experience a lot. As for the anxiety level, it is positively related to the negative solitude affect. Thus we have learned that we should try not to be anxious too much to have better solitude experiences.
+
+
+# Discussion 
+
+\newpage
+
+\appendix
+
+# Appendix {-}
+
+
+\newpage
+
+
+# References{-}
